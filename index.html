@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loyola Pastoral Circle Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-parchment: #f5f2e7;
+            --deep-bark: #3c2f2f;
+            --moss-green: #4a5d23;
+            --rust: #a0522d;
+            --gold: #d4af37;
+            --transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-parchment);
+            color: var(--deep-bark);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Texture Overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url('https://www.transparenttextures.com/patterns/p6.png');
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Typography */
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(245, 242, 231, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 1px solid var(--moss-green);
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--deep-bark);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+        }
+
+        nav a:hover { color: var(--moss-green); transform: translateY(-2px); }
+
+        /* Page Management */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding: 120px 10% 60px;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Page - Hero */
+        .hero {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 100px;
+        }
+
+        .hero h1 { font-size: 4rem; margin-bottom: 20px; }
+        .hero p { font-style: italic; color: var(--rust); font-size: 1.2rem; }
+
+        /* Grid System */
+        .entry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 5px 5px 0px var(--moss-green);
+        }
+
+        .card:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 15px 15px 0px var(--gold);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            filter: sepia(0.3);
+        }
+
+        /* Biome Themes */
+        .theme-forest { --accent: #2d4c1e; background: #e9edc9; }
+        .theme-ocean { --accent: #1e3d59; background: #d0e8f2; }
+        .theme-desert { --accent: #bc6c25; background: #fefae0; }
+
+        /* Decorative Elements */
+        .floating-leaf {
+            position: absolute;
+            width: 40px;
+            opacity: 0.6;
+            animation: float 6s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-20px) rotate(15deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--moss-green);
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" onclick="showPage('home')">Home</a>
+        <a href="#" onclick="showPage('group1')">Group 1</a>
+        <a href="#" onclick="showPage('group2')">Group 2</a>
+        <a href="#" onclick="showPage('group3')">Group 3</a>
+        <a href="#" onclick="showPage('group4')">Group 4</a>
+        <a href="#" onclick="showPage('group5')">Group 5</a>
+        <a href="#" onclick="showPage('group6')">Group 6</a>
+        <a href="#" onclick="showPage('group7')">Group 7</a>
+        <a href="#" onclick="showPage('group8')">Group 8</a>
+    </nav>
+
+    <section id="home" class="page active">
+        <div class="hero">
+            <h1>Loyola Pastoral Circle Portfolio</h1>
+            <p>A maximalist collection of organic thoughts and digital seeds.</p>
+        </div>
+        <div class="about">
+            <h2>About Sonia's Home for Rescued Dogs</h2>
+            <p> </p>
+        </div>
+
+        <div class="entry-grid">
+            <div class="card" onclick="showPage('group1')">
+                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=400" alt="Forest">
+                <h3>01. Deep Forest</h3>
+                <p>Whispers from the ancient canopy.</p>
+            </div>
+            <div class="card" onclick="showPage('group2')">
+                <img src="https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=400" alt="Ocean">
+                <h3>02. Tidal Basin</h3>
+                <p>Fluidity and the salt-stained memory.</p>
+            </div>
+            <div class="card" onclick="showPage('group5')">
+                <img src="https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=400" alt="Desert">
+                <h3>05. Sun-Baked Earth</h3>
+                <p>Resilience in the shifting sands.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="group1" class="page theme-forest">
+        <h2>Group 1</h2>
+        <p>A collection of works inspired by density and shadow.</p>
+        <div class="entry-grid" style="margin-top: 40px;">
+            <div class="card"><h4>Project A</h4><p>Details about forest-inspired output.</p></div>
+            <div class="card"><h4>Project B</h4><p>Layered organic design study.</p></div>
+            <div class="card"><h4>Project C</h4><p>Texture exploration of moss and bark.</p></div>
+        </div>
+    </section>
+
+    <section id="group2" class="page theme-ocean">
+        <h2>Group 2</h2>
+        <p>Exploring the depths of blue and movement.</p>
+        <div class="entry-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="card"><h4>Study 01</h4><p>The motion of the tides.</p></div>
+            <div class="card"><h4>Study 02</h4><p>Reflections on glass and water.</p></div>
+        </div>
+    </section>
+
+    <section id="group3" class="page"><h2>Group 3: Wildflower Meadow</h2></section>
+    <section id="group4" class="page"><h2>Group 4: Alpine Ridge</h2></section>
+    <section id="group5" class="page theme-desert"><h2>Group 5: Sand & Stone</h2></section>
+    <section id="group6" class="page" style="background: #222; color: #eee;"><h2>Group 6: The Cavern</h2></section>
+    <section id="group7" class="page"><h2>Group 7: Autumn Grove</h2></section>
+    <section id="group8" class="page"><h2>Group 8: Mist & Veil</h2></section>
+
+    <footer>
+        <p>&copy; 2026 Crafted by Nature. Socials: [Leaf] [Stone] [Branch]</p>
+    </footer>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Add some random floating leaves to the home page
+        const home = document.getElementById('home');
+        for(let i=0; i<10; i++) {
+            const leaf = document.createElement('div');
+            leaf.className = 'floating-leaf';
+            leaf.innerHTML = '🍃';
+            leaf.style.left = Math.random() * 100 + 'vw';
+            leaf.style.top = Math.random() * 100 + 'vh';
+            leaf.style.animationDelay = Math.random() * 5 + 's';
+            home.appendChild(leaf);
+        }
+    </script>
+</body>
+</html>
