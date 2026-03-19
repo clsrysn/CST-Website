@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Carousel</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --card-bg: #6b6b6b;
+    --card-bg-light: #808080;
+    --card-shadow: rgba(0,0,0,0.45);
+    --radius: 18px;
+    --white: #ffffff;
+    --slot-color: #9a9a9a;
+    --body-bg: #1e1e1e;
+  }
+
+  body {
+    background: var(--body-bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+  }
+
+  .label {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    color: rgba(255,255,255,0.18);
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── STACK CONTAINER ── */
+  .stack {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    box-shadow: 0 16px 48px var(--card-shadow), 0 2px 8px rgba(0,0,0,0.3);
+    overflow: hidden;
+    transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.4s ease,
+                box-shadow 0.4s ease;
+    will-change: transform;
+  }
+
+  /* Back card — offset bottom-right like image */
+  .card.back {
+    transform: translate(14px, 10px) rotate(3deg);
+    z-index: 1;
+    background: #5a5a5a;
+    opacity: 0.85;
+  }
+
+  /* Front card */
+  .card.front {
+    transform: translate(0, 0) rotate(0deg);
+    z-index: 2;
+  }
+
+  /* Photo inside front card */
+  .card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.35s ease;
+  }
+
+  /* Placeholder X when no image — mimics the icon */
+  .card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+  }
+
+  .x-mark {
+    position: relative;
+    width: 60%;
+    height: 60%;
+  }
+  .x-mark::before,
+  .x-mark::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 18%;
+    background: var(--white);
+    border-radius: 4px;
+    transform-origin: center center;
+  }
+  .x-mark::before { transform: translate(-50%, -50%) rotate(45deg); }
+  .x-mark::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+
+  /* Bottom slot / grip strip */
+  .card-slot {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36%;
+    height: 8px;
+    background: var(--slot-color);
+    border-radius: 99px;
+    opacity: 0.55;
+  }
+
+  /* Overlay tint on hover */
+  .stack:hover .card.front {
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    transform: translate(0, -4px) rotate(0deg);
+  }
+  .stack:hover .card.back {
+    transform: translate(18px, 14px) rotate(4deg);
+  }
+
+  /* Active press */
+  .stack:active .card.front {
+    transform: translate(0, 2px) scale(0.98);
+    box-shadow: 0 8px 24px var(--card-shadow);
+  }
+
+  /* ── ANIMATION: slide out ── */
+  .card.exit {
+    animation: slideOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    z-index: 3;
+  }
+  @keyframes slideOut {
+    0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+    40%  { transform: translate(-30px, -20px) rotate(-8deg) scale(1.04); opacity: 1; }
+    100% { transform: translate(340px, -60px) rotate(12deg) scale(0.9); opacity: 0; }
+  }
+
+  /* ── ANIMATION: back promotes to front ── */
+  .card.promote {
+    animation: promote 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes promote {
+    from { transform: translate(14px, 10px) rotate(3deg); z-index: 1; }
+    to   { transform: translate(0,0) rotate(0deg); z-index: 2; }
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.6);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+    backdrop-filter: blur(6px);
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.9);
+    transform: scale(1.08);
+  }
+  .btn:active { transform: scale(0.95); }
+
+  .counter {
+    font-family: 'DM Serif Display', serif;
+    color: rgba(255,255,255,0.5);
+    font-size: 15px;
+    min-width: 52px;
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+  .counter span {
+    color: rgba(255,255,255,0.9);
+    font-size: 20px;
+  }
+
+  /* ── DOTS ── */
+  .dots {
+    display: flex;
+    gap: 8px;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: background 0.3s, transform 0.3s;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: rgba(255,255,255,0.75);
+    transform: scale(1.4);
+  }
+
+  /* ── DRAG HINT ── */
+  .hint {
+    color: rgba(255,255,255,0.2);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="label">Photo Stack</div>
+
+  <div class="stack" id="stack">
+    <!-- Back card -->
+    <div class="card back" id="backCard">
+      <div class="card-placeholder">
+        <div class="x-mark"></div>
+      </div>
+      <div class="card-slot"></div>
+    </div>
+    <!-- Front card -->
+    <div class="card front" id="frontCard">
+      <div class="card-placeholder">
+        <div class="x-mark"></div>
+      </div>
+      <div class="card-slot"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="prevBtn" title="Previous">&#8592;</button>
+    <div class="counter"><span id="currentNum">1</span> / <span id="totalNum">5</span></div>
+    <button class="btn" id="nextBtn" title="Next">&#8594;</button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+  <div class="hint">click stack or arrows to navigate</div>
+</div>
+
+<script>
+  // ── DATA ──
+  // Replace these with your own image URLs or local paths.
+  // Using public placeholder images for demo.
+  const photos = [
+    { src: 'C:\Users\Acer\Documents\CST Website\pics\6.jpg',   alt: 'Photo 1' },
+    { src: 'C:\Users\Acer\Documents\CST Website\pics\2.jpg',   alt: 'Photo 2' },
+    { src: 'https://picsum.photos/seed/charlie/600/600', alt: 'Photo 3' },
+    { src: 'https://picsum.photos/seed/delta/600/600',   alt: 'Photo 4' },
+    { src: 'https://picsum.photos/seed/echo/600/600',    alt: 'Photo 5' },
+  ];
+
+  let current = 0;
+  let animating = false;
+  const total = photos.length;
+
+  const frontCard = document.getElementById('frontCard');
+  const backCard  = document.getElementById('backCard');
+  const dotsEl    = document.getElementById('dots');
+  const currentNumEl = document.getElementById('currentNum');
+  document.getElementById('totalNum').textContent = total;
+
+  // ── PRELOAD ──
+  photos.forEach(p => { const i = new Image(); i.src = p.src; });
+
+  // ── BUILD DOTS ──
+  photos.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function updateDots() {
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  // ── RENDER ──
+  function setCardPhoto(cardEl, index) {
+    const p = photos[(index + total) % total];
+    const existing = cardEl.querySelector('.card-img');
+    if (existing) {
+      existing.src = p.src;
+      existing.alt = p.alt;
+    } else {
+      // Replace placeholder with real image
+      cardEl.innerHTML = `<img class="card-img" src="${p.src}" alt="${p.alt}"><div class="card-slot"></div>`;
+    }
+  }
+
+  function initCards() {
+    setCardPhoto(frontCard, current);
+    setCardPhoto(backCard, (current + 1) % total);
+  }
+  initCards();
+
+  // ── NAVIGATE ──
+  function goTo(next) {
+    if (animating || next === current) return;
+    const direction = next > current ? 1 : -1;
+    navigate(direction, next);
+  }
+
+  function navigate(dir = 1, forceTo = null) {
+    if (animating) return;
+    animating = true;
+
+    const nextIndex = forceTo !== null
+      ? forceTo
+      : (current + dir + total) % total;
+
+    const peekIndex = (nextIndex + 1) % total;
+
+    // Slide front card out
+    frontCard.classList.add('exit');
+
+    // Promote back card
+    backCard.classList.add('promote');
+    backCard.classList.remove('back');
+    backCard.classList.add('front');
+
+    frontCard.addEventListener('animationend', () => {
+      // Reset old front → becomes back
+      frontCard.classList.remove('exit', 'front');
+      frontCard.classList.add('back');
+      frontCard.style.transform = '';
+      setCardPhoto(frontCard, peekIndex);
+
+      // Swap references
+      const tmp = { el: frontCard };
+      Object.assign(frontCard, backCard);  // won't work on const — swap by id
+      // Actually just reassign roles via CSS classes
+      backCard.classList.remove('promote', 'front');
+      backCard.classList.add('front');
+      frontCard.classList.add('back');
+
+      current = nextIndex;
+      currentNumEl.textContent = current + 1;
+      updateDots();
+
+      setTimeout(() => { animating = false; }, 50);
+    }, { once: true });
+  }
+
+  // ── EVENTS ──
+  document.getElementById('nextBtn').addEventListener('click', () => navigate(1));
+  document.getElementById('prevBtn').addEventListener('click', () => navigate(-1));
+  document.getElementById('stack').addEventListener('click', () => navigate(1));
+
+  // ── KEYBOARD ──
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') navigate(1);
+    if (e.key === 'ArrowLeft')  navigate(-1);
+  });
+
+  // ── DRAG / SWIPE ──
+  let startX = 0;
+  const stack = document.getElementById('stack');
+  stack.addEventListener('pointerdown', e => { startX = e.clientX; });
+  stack.addEventListener('pointerup',   e => {
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>
